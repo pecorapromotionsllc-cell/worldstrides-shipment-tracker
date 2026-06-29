@@ -26,6 +26,7 @@ header.hdr{background:linear-gradient(120deg,var(--navy),var(--blue));color:#fff
 .toggle{display:flex;align-items:center;gap:6px;font-size:13px;background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 11px;cursor:pointer}
 .btn{padding:9px 13px;border:1px solid var(--blue);background:var(--blue);color:#fff;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer}
 .btn.ghost{background:#fff;color:var(--blue)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
 .legend{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 14px;font-size:12px;color:var(--muted);align-items:center}
 .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap}
 .b-amber{background:var(--amberbg);color:var(--amber)}.b-rdy{background:var(--rdybg);color:var(--rdy)}.b-green{background:var(--greenbg);color:var(--green)}.b-red{background:var(--redbg);color:var(--red)}.b-gray{background:var(--graybg);color:var(--gray)}
@@ -73,6 +74,7 @@ td.contact-cell.missing{background:var(--redbg)}
     <select id="ftype"><option value="">All types</option><option>Freight</option><option>Parcel</option></select>
     <select id="fstatus"><option value="">All statuses</option></select>
     <label class="toggle"><input type="checkbox" id="fmiss"> Missing contact only</label>
+    <button class="btn" id="save" disabled>Save Changes</button>
     <button class="btn ghost" id="refresh">Refresh</button>
     <button class="btn ghost" id="export">Export CSV</button>
     <span class="conn" id="conn"><span class="dot"></span><span id="connt">Connecting...</span></span>
@@ -99,6 +101,7 @@ const SBADGE = {"Order in process":"b-amber","Ready for shipment":"b-rdy","Shipp
 let store = {};
 const $=id=>document.getElementById(id);
 const timers={};
+const pending={};
 
 function ov(v){ return store[v.id]||{}; }
 function curContact(v){ const o=ov(v); return o.contact!==undefined? o.contact : ""; }
@@ -107,6 +110,10 @@ function curTrack(v,tid){ const o=ov(v); return (o.tracking&&o.tracking[tid]!==u
 function curNote(v,tid){ const o=ov(v); return (o.notes&&o.notes[tid]!==undefined)? o.notes[tid] : ""; }
 
 function setConn(state,txt){ const c=$("conn"); c.className="conn "+state; $("connt").textContent=txt; }
+function updateSaveButton(){
+  const btn=$("save");
+  if(btn) btn.disabled=Object.keys(pending).length===0;
+}
 async function loadStore(initial){
   try{
     const r=await fetch(API,{cache:"no-store"}); if(!r.ok) throw 0;
@@ -120,7 +127,8 @@ async function push(body){
   try{
     const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
     if(!r.ok) throw 0; setConn("ok","Saved");
-  }catch(e){ setConn("err","Not saved - retry"); }
+    return true;
+  }catch(e){ setConn("err","Not saved - retry"); return false; }
 }
 function localApply(id,field,value,tid){
   store[id]=store[id]||{};
@@ -130,10 +138,28 @@ function localApply(id,field,value,tid){
 function edit(id,field,value,tid){
   localApply(id,field,value,tid);
   const key=id+"|"+field+"|"+(tid||"");
+  pending[key]={id,field,value,tripId:tid};
+  updateSaveButton();
   clearTimeout(timers[key]);
-  timers[key]=setTimeout(()=>push({id,field,value,tripId:tid}), 500);
+  timers[key]=setTimeout(async()=>{
+    const body=pending[key];
+    if(!body) return;
+    const saved=await push(body);
+    if(saved && pending[key]===body) delete pending[key];
+    updateSaveButton();
+  }, 500);
 }
-function editNow(id,field,value,tid){ localApply(id,field,value,tid); push({id,field,value,tripId:tid}); }
+async function editNow(id,field,value,tid){ localApply(id,field,value,tid); await push({id,field,value,tripId:tid}); }
+async function savePending(){
+  const entries=Object.entries(pending);
+  if(!entries.length) return;
+  entries.forEach(([key])=>clearTimeout(timers[key]));
+  for(const [key,body] of entries){
+    const saved=await push(body);
+    if(saved && pending[key]===body) delete pending[key];
+  }
+  updateSaveButton();
+}
 
 let sortK="arrival", sortDir=1;
 function statusSelectOptions(){ const sel=$("fstatus"); STATUSES.forEach(s=>{const o=document.createElement("option");o.value=s;o.textContent=s;sel.appendChild(o);}); }
@@ -204,6 +230,7 @@ document.addEventListener("DOMContentLoaded",async()=>{
   await loadStore(false); render(); updateCards();
   $("q").addEventListener("input",render); $("ftype").addEventListener("change",render);
   $("fstatus").addEventListener("change",render); $("fmiss").addEventListener("change",render);
+  $("save").addEventListener("click",savePending);
   $("export").addEventListener("click",exportCSV);
   $("refresh").addEventListener("click",async()=>{ if(await loadStore(false)){render();updateCards();} });
   document.querySelectorAll("thead th[data-k]").forEach(th=>{ th.addEventListener("click",()=>{const k=th.dataset.k; if(sortK===k)sortDir*=-1; else{sortK=k;sortDir=1;} render();}); });
