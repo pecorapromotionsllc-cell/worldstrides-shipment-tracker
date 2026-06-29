@@ -1,0 +1,10 @@
+{
+  "name": "worldstrides-1266-shipment-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared shipment tracker for WorldStrides K-12 individual programs (Summer 2026, Session 1266).",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}
