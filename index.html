@@ -26,6 +26,8 @@ header.hdr{background:linear-gradient(120deg,var(--navy),var(--blue));color:#fff
 .toggle{display:flex;align-items:center;gap:6px;font-size:13px;background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 11px;cursor:pointer}
 .btn{padding:9px 13px;border:1px solid var(--blue);background:var(--blue);color:#fff;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer}
 .btn.ghost{background:#fff;color:var(--blue)}
+.btn.save{background:var(--green);border-color:var(--green)}
+.btn.save.dirty{box-shadow:0 0 0 3px rgba(21,127,61,.18)}
 .legend{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 14px;font-size:12px;color:var(--muted);align-items:center}
 .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap}
 .b-amber{background:var(--amberbg);color:var(--amber)}.b-rdy{background:var(--rdybg);color:var(--rdy)}.b-green{background:var(--greenbg);color:var(--green)}.b-red{background:var(--redbg);color:var(--red)}.b-gray{background:var(--graybg);color:var(--gray)}
@@ -51,8 +53,8 @@ td.contact-cell.missing{background:var(--redbg)}
 .note-in.has{border-color:var(--blue);background:var(--rdybg)}
 .foot{margin-top:16px;font-size:11.5px;color:var(--muted)}
 .nores{padding:24px;text-align:center;color:var(--muted)}
-.conn{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:6px 11px;border-radius:9px;border:1px solid var(--line);background:#fff}
-.conn .dot{width:9px;height:9px;border-radius:50%;background:var(--gray)}
+.conn{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:6px 11px;border-radius:9px;border:1px solid var(--line);background:#fff;max-width:340px}
+.conn .dot{width:9px;height:9px;border-radius:50%;background:var(--gray);flex:none}
 .conn.ok .dot{background:var(--green)} .conn.ok{color:var(--green)}
 .conn.saving .dot{background:var(--amber)} .conn.saving{color:var(--amber)}
 .conn.err .dot{background:var(--red)} .conn.err{color:var(--red)}
@@ -73,6 +75,7 @@ td.contact-cell.missing{background:var(--redbg)}
     <select id="ftype"><option value="">All types</option><option>Freight</option><option>Parcel</option></select>
     <select id="fstatus"><option value="">All statuses</option></select>
     <label class="toggle"><input type="checkbox" id="fmiss"> Missing contact only</label>
+    <button class="btn save" id="saveall">Save changes</button>
     <button class="btn ghost" id="refresh">Refresh</button>
     <button class="btn ghost" id="export">Export CSV</button>
     <span class="conn" id="conn"><span class="dot"></span><span id="connt">Connecting...</span></span>
@@ -88,7 +91,7 @@ td.contact-cell.missing{background:var(--redbg)}
   <div class="nores" id="nores" style="display:none">No venues match your filters.</div>
   <div class="foot">
     Source: <strong>Ship Dates by Trip ID (003).xlsx</strong> &middot; 39 venues, 119 program shipments.
-    Contacts, tracking numbers, notes, and status save to a <strong>shared database</strong> &mdash; everyone with the link sees the same data. The page auto-refreshes every 15 seconds. Generated June 29, 2026.
+    Edits auto-save to a <strong>shared database</strong> as you type; use <strong>Save changes</strong> to force-save everything at once. Everyone with the link sees the same data. Generated June 29, 2026.
   </div>
 </div>
 <script>
@@ -97,6 +100,8 @@ const API = "/api/data";
 const STATUSES = ["Order in process","Ready for shipment","Shipped","Needs attention","Not started"];
 const SBADGE = {"Order in process":"b-amber","Ready for shipment":"b-rdy","Shipped":"b-green","Needs attention":"b-red","Not started":"b-gray"};
 let store = {};
+let pending = 0;       // in-flight/debounced single saves
+let unsynced = false;  // true if a local edit hasn't been confirmed saved
 const $=id=>document.getElementById(id);
 const timers={};
 
@@ -105,35 +110,60 @@ function curContact(v){ const o=ov(v); return o.contact!==undefined? o.contact :
 function curStatus(v){ const o=ov(v); return o.status!==undefined? o.status : (v.status||"Not started"); }
 function curTrack(v,tid){ const o=ov(v); return (o.tracking&&o.tracking[tid]!==undefined)? o.tracking[tid] : ""; }
 function curNote(v,tid){ const o=ov(v); return (o.notes&&o.notes[tid]!==undefined)? o.notes[tid] : ""; }
+function typing(){ const e=document.activeElement; return e&&(e.tagName==="INPUT"||e.tagName==="SELECT"); }
 
 function setConn(state,txt){ const c=$("conn"); c.className="conn "+state; $("connt").textContent=txt; }
-async function loadStore(initial){
+function markDirty(on){ unsynced=on; $("saveall").classList.toggle("dirty",on); }
+
+async function loadStore(force){
   try{
-    const r=await fetch(API,{cache:"no-store"}); if(!r.ok) throw 0;
-    const j=await r.json(); store=j.overrides||{};
-    setConn("ok","Live"); if(initial){render();updateCards();}
+    const r=await fetch(API,{cache:"no-store"});
+    const j=await r.json().catch(()=>null);
+    if(!r.ok) throw new Error((j&&j.error)||("HTTP "+r.status));
+    // Never clobber unsaved local edits unless explicitly forced and clean.
+    if(force || (!unsynced && pending===0 && !typing())){ store=j.overrides||{}; }
+    setConn("ok","Live - saved");
     return true;
-  }catch(e){ setConn("err","Offline"); return false; }
-}
-async function push(body){
-  setConn("saving","Saving...");
-  try{
-    const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-    if(!r.ok) throw 0; setConn("ok","Saved");
-  }catch(e){ setConn("err","Not saved - retry"); }
+  }catch(e){ setConn("err","Connection error: "+e.message); return false; }
 }
 function localApply(id,field,value,tid){
   store[id]=store[id]||{};
   if(field==="tracking"||field==="notes"){ store[id][field]=store[id][field]||{}; store[id][field][tid]=value; }
   else { store[id][field]=value; }
 }
+async function push(body){
+  pending++; markDirty(true); setConn("saving","Saving...");
+  try{
+    const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+    const j=await r.json().catch(()=>null);
+    if(!r.ok) throw new Error((j&&j.error)||("HTTP "+r.status));
+    pending=Math.max(0,pending-1);
+    if(pending===0){ markDirty(false); setConn("ok","Saved"); }
+  }catch(e){ pending=Math.max(0,pending-1); setConn("err","Not saved: "+e.message); /* keep unsynced=true */ }
+}
 function edit(id,field,value,tid){
-  localApply(id,field,value,tid);
+  localApply(id,field,value,tid); markDirty(true);
   const key=id+"|"+field+"|"+(tid||"");
   clearTimeout(timers[key]);
   timers[key]=setTimeout(()=>push({id,field,value,tripId:tid}), 500);
 }
 function editNow(id,field,value,tid){ localApply(id,field,value,tid); push({id,field,value,tripId:tid}); }
+
+async function saveAll(){
+  setConn("saving","Saving all changes...");
+  try{
+    const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({overrides:store})});
+    const j=await r.json().catch(()=>null);
+    if(!r.ok) throw new Error((j&&j.error)||("HTTP "+r.status));
+    if(j&&j.overrides) store=j.overrides;
+    pending=0; markDirty(false); setConn("ok","All changes saved");
+    render(); updateCards();
+    alert("All changes saved to the shared database. Everyone with the link will now see them.");
+  }catch(e){
+    setConn("err","Save failed: "+e.message);
+    alert("Could not save: "+e.message+"\n\nIf this mentions a 404, the save function isn't deployed yet. If it mentions Blobs, the database needs enabling. Send Claude this exact message.");
+  }
+}
 
 let sortK="arrival", sortDir=1;
 function statusSelectOptions(){ const sel=$("fstatus"); STATUSES.forEach(s=>{const o=document.createElement("option");o.value=s;o.textContent=s;sel.appendChild(o);}); }
@@ -168,7 +198,7 @@ function render(){
       '<td class="muted">'+esc(v.city)+'</td>'+
       '<td>'+esc(v.type)+'<div class="muted">'+esc(v.mode||"")+'</div></td>'+
       '<td>'+esc(v.arrival||"—")+'</td>'+'<td>'+(v.pallets!=null?v.pallets:'—')+'</td>'+'<td>'+v.trips.length+'</td>'+
-      '<td class="contact-cell '+(miss?'missing':'')+'"><input class="contact-in '+(miss?'missing':'')+'" data-c="'+v.id+'" value="'+esc(r.contact)+'" placeholder="Add on-site contact...">'+(miss?'<span class="miss-tag">&#9888; Missing</span>':'')+'</td>';
+      '<td class="contact-cell '+(miss?'missing':'')+'"><input class="contact-in '+(miss?'missing':'')+'" data-c="'+v.id+'" value="'+esc(r.contact)+'" placeholder="Add on-site contact..."></td>';
     tb.appendChild(tr);
     const dt=document.createElement("tr"); dt.className="detail"; dt.style.display=open?"table-row":"none"; dt.dataset.det=v.id;
     let inner='<td colspan="8"><table><thead><tr><th>Trip ID</th><th>Program</th><th>Arrival</th><th>Comments</th><th>Tracking #</th><th>Notes</th></tr></thead><tbody>';
@@ -197,17 +227,21 @@ function exportCSV(){ const head=["Venue","City","Mode","Type","Arrival","Pallet
     v.trips.filter(t=>curNote(v,t.tripId).trim()).map(t=>t.tripId+": "+curNote(v,t.tripId)).join(" | ")];
     lines.push(row.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(",")); });
   const blob=new Blob([lines.join("\n")],{type:"text/csv"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="WorldStrides_1266_Shipment_Tracker.csv"; a.click(); }
-function typing(){ const e=document.activeElement; return e&&(e.tagName==="INPUT"||e.tagName==="SELECT"); }
 
 document.addEventListener("DOMContentLoaded",async()=>{
   statusSelectOptions(); buildLegend();
-  await loadStore(false); render(); updateCards();
+  await loadStore(true); render(); updateCards();
   $("q").addEventListener("input",render); $("ftype").addEventListener("change",render);
   $("fstatus").addEventListener("change",render); $("fmiss").addEventListener("change",render);
+  $("saveall").addEventListener("click",saveAll);
   $("export").addEventListener("click",exportCSV);
-  $("refresh").addEventListener("click",async()=>{ if(await loadStore(false)){render();updateCards();} });
+  $("refresh").addEventListener("click",async()=>{
+    if(unsynced && !confirm("You have unsaved changes. Refreshing pulls the shared copy and may discard them. Continue?")) return;
+    if(await loadStore(true)){render();updateCards();}
+  });
   document.querySelectorAll("thead th[data-k]").forEach(th=>{ th.addEventListener("click",()=>{const k=th.dataset.k; if(sortK===k)sortDir*=-1; else{sortK=k;sortDir=1;} render();}); });
-  setInterval(async()=>{ if(typing())return; if(await loadStore(false)){render();updateCards();} }, 15000);
+  // Auto-refresh shared data, but only when it is safe (not typing, nothing pending/unsaved).
+  setInterval(async()=>{ if(typing()||pending>0||unsynced)return; if(await loadStore(false)){render();updateCards();} }, 15000);
 });
 </script>
 </body>
