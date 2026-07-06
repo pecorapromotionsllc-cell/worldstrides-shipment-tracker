@@ -3,33 +3,33 @@ import { getStore } from "@netlify/blobs";
 // Shared data store for the WorldStrides 1266 shipment tracker.
 //   GET  /api/data  -> { overrides: {...} }
 //   POST /api/data  with either:
-//        { id, field, value, tripId? }         (single edit)
-//     or { overrides: {...} }                  (bulk save — "Save changes" button)
+//        { id, field, value, tripId? }   single edit. field one of:
+//            contact | status                       (scalar on the venue)
+//            tracking | notes | inhands | delivered (maps keyed by rowKey)
+//            addShipment    value = {key,tripId,program,comments}
+//            removeShipment value = key
+//            addedField     value = {key,prop,val}
+//     or { overrides: {...} }            bulk save ("Save changes")
 //   -> { ok:true, overrides:{...} }
-// Errors are returned as JSON { error: "..." } so the page can show the real reason.
+// Errors return JSON { error:"..." } so the page can show the real reason.
 
 const STORE = "ws1266-tracker";
 const KEY = "overrides";
+const MAPS = ["tracking", "notes", "inhands", "delivered"];
 
-// Strong consistency so a read right after a write always reflects the write.
 function db() { return getStore({ name: STORE, consistency: "strong" }); }
-
 function json(obj, status = 200) {
   return new Response(JSON.stringify(obj), {
-    status,
-    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" }
+    status, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" }
   });
 }
-
 function deepMerge(target, src) {
   for (const k in src) {
     const v = src[k];
     if (v && typeof v === "object" && !Array.isArray(v)) {
-      target[k] = (target[k] && typeof target[k] === "object") ? target[k] : {};
+      target[k] = (target[k] && typeof target[k] === "object" && !Array.isArray(target[k])) ? target[k] : {};
       deepMerge(target[k], v);
-    } else {
-      target[k] = v;
-    }
+    } else { target[k] = v; }
   }
   return target;
 }
@@ -46,17 +46,25 @@ export default async (req) => {
     if (req.method === "POST") {
       const body = await req.json().catch(() => null);
       if (!body) return json({ error: "Bad JSON body" }, 400);
-
       const data = (await store.get(KEY, { type: "json" })) || {};
 
       if (body.overrides && typeof body.overrides === "object") {
-        // Bulk save from the "Save changes" button.
         deepMerge(data, body.overrides);
       } else {
         const { id, field, value, tripId } = body;
         if (id === undefined || !field) return json({ error: "Missing id/field" }, 400);
         data[id] = data[id] || {};
-        if (field === "tracking" || field === "notes") {
+
+        if (field === "addShipment") {
+          data[id].added = data[id].added || [];
+          data[id].added.push(value);
+        } else if (field === "removeShipment") {
+          data[id].added = (data[id].added || []).filter(s => s.key !== value);
+        } else if (field === "addedField") {
+          data[id].added = data[id].added || [];
+          const it = data[id].added.find(s => s.key === value.key);
+          if (it) it[value.prop] = value.val;
+        } else if (MAPS.includes(field)) {
           data[id][field] = data[id][field] || {};
           data[id][field][tripId] = value;
         } else {
@@ -70,7 +78,6 @@ export default async (req) => {
 
     return json({ error: "Method not allowed" }, 405);
   } catch (e) {
-    // Surface the real error (e.g. Blobs misconfig) instead of failing silently.
     return json({ error: String((e && e.message) || e) }, 500);
   }
 };

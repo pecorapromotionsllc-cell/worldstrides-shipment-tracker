@@ -6,7 +6,7 @@
 <title>WorldStrides K-12 Shipment Tracker — Summer 2026</title>
 <style>
 :root{ color-scheme: light; --navy:#0b2a4a; --blue:#0b5cab; --bg:#f4f6f9; --card:#fff; --ink:#1a2533; --muted:#5e6b7b; --line:#e2e8f0;
-  --amber:#b7791f; --amberbg:#fef3c7; --rdy:#1273d4; --rdybg:#dbeafe; --green:#157f3d; --greenbg:#d9f2e2; --red:#c0392b; --redbg:#fdecea; --gray:#64748b; --graybg:#eef1f5;}
+  --amber:#b7791f; --amberbg:#fef3c7; --rdy:#1273d4; --rdybg:#dbeafe; --green:#157f3d; --greenbg:#d9f2e2; --teal:#0f766e; --tealbg:#ccfbf1; --red:#c0392b; --redbg:#fdecea; --gray:#64748b; --graybg:#eef1f5;}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45}
 .wrap{max-width:1200px;margin:0 auto;padding:18px 18px 60px}
@@ -30,7 +30,7 @@ header.hdr{background:linear-gradient(120deg,var(--navy),var(--blue));color:#fff
 .btn.save.dirty{box-shadow:0 0 0 3px rgba(21,127,61,.18)}
 .legend{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 14px;font-size:12px;color:var(--muted);align-items:center}
 .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;white-space:nowrap}
-.b-amber{background:var(--amberbg);color:var(--amber)}.b-rdy{background:var(--rdybg);color:var(--rdy)}.b-green{background:var(--greenbg);color:var(--green)}.b-red{background:var(--redbg);color:var(--red)}.b-gray{background:var(--graybg);color:var(--gray)}
+.b-amber{background:var(--amberbg);color:var(--amber)}.b-rdy{background:var(--rdybg);color:var(--rdy)}.b-green{background:var(--greenbg);color:var(--green)}.b-teal{background:var(--tealbg);color:var(--teal)}.b-red{background:var(--redbg);color:var(--red)}.b-gray{background:var(--graybg);color:var(--gray)}
 table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 thead th{background:#f1f5fa;text-align:left;padding:10px 12px;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap}
 tbody td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
@@ -47,13 +47,20 @@ td.contact-cell.missing{background:var(--redbg)}
 .detail thead th{background:#eef2f7;text-transform:none;letter-spacing:0;font-size:11px}
 .detail td{font-size:12.5px;padding:7px 10px}
 .tid{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px}
+.date-in{padding:6px 8px;border:1px solid var(--line);border-radius:7px;font-size:12px;color:var(--ink);background:#fff}
+.date-in.has{border-color:var(--teal);background:var(--tealbg)}
+.add-in{padding:6px 8px;border:1px solid var(--line);border-radius:7px;font-size:12px;min-width:90px;font-family:inherit}
+.tid-in{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.rm{border:none;background:transparent;color:var(--red);font-size:16px;cursor:pointer;font-weight:800;line-height:1;padding:0 4px}
+.addship{font-size:12px;padding:6px 11px;margin:2px 0}
+.newtag{display:inline-block;font-size:9.5px;font-weight:700;color:var(--blue);border:1px solid var(--rdy);border-radius:5px;padding:0 4px;margin-left:4px;vertical-align:middle}
 .track-in{width:100%;min-width:120px;padding:6px 8px;border:1px solid var(--line);border-radius:7px;font-size:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 .track-in.has{border-color:var(--green);background:var(--greenbg)}
 .note-in{width:100%;min-width:150px;padding:6px 8px;border:1px solid var(--line);border-radius:7px;font-size:12px;font-family:inherit}
 .note-in.has{border-color:var(--blue);background:var(--rdybg)}
 .foot{margin-top:16px;font-size:11.5px;color:var(--muted)}
 .nores{padding:24px;text-align:center;color:var(--muted)}
-.conn{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:6px 11px;border-radius:9px;border:1px solid var(--line);background:#fff;max-width:340px}
+.conn{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:6px 11px;border-radius:9px;border:1px solid var(--line);background:#fff;max-width:360px}
 .conn .dot{width:9px;height:9px;border-radius:50%;background:var(--gray);flex:none}
 .conn.ok .dot{background:var(--green)} .conn.ok{color:var(--green)}
 .conn.saving .dot{background:var(--amber)} .conn.saving{color:var(--amber)}
@@ -83,96 +90,125 @@ td.contact-cell.missing{background:var(--redbg)}
   <table id="tbl">
     <thead><tr>
       <th data-k="status">Status</th><th data-k="location">Venue</th><th data-k="city">City</th>
-      <th data-k="type">Mode</th><th data-k="arrival">Arrival</th><th data-k="pallets">Pallets</th>
+      <th data-k="type">Mode</th><th data-k="arrival">In-Hands</th><th data-k="pallets">Pallets</th>
       <th data-k="nprog">Programs</th><th style="cursor:default">On-Site Contact</th>
     </tr></thead>
     <tbody id="tbody"></tbody>
   </table>
   <div class="nores" id="nores" style="display:none">No venues match your filters.</div>
   <div class="foot">
-    Source: <strong>Ship Dates by Trip ID (003).xlsx</strong> &middot; 39 venues, 119 program shipments.
-    Edits auto-save to a <strong>shared database</strong> as you type; use <strong>Save changes</strong> to force-save everything at once. Everyone with the link sees the same data. Generated June 29, 2026.
+    Source: <strong>Ship Dates by Trip ID (003).xlsx</strong> &middot; 39 venues, 119 program shipments (add more per venue).
+    Edits auto-save to a <strong>shared database</strong> as you type; use <strong>Save changes</strong> to force-save everything. Everyone with the link sees the same data. Generated July 6, 2026.
   </div>
 </div>
 <script>
 const RAW = [{"location": "American University", "city": "Washington, DC", "arrival": "2026-06-03", "pallets": 5, "mode": "Freight", "status": "Ready for shipment", "type": "Freight", "trips": [{"tripId": "TRN_GEN_1266", "program": "TRN", "arrival": "2026-06-03", "comments": "Must arrive on date"}, {"tripId": "S2R_DCZOO_VEM_1266", "program": "VEM", "arrival": "2026-06-03", "comments": "Must arrive on date"}, {"tripId": "S1R_DCZOO_VEM_1266", "program": "VEM", "arrival": "2026-06-03", "comments": "Must arrive on date"}], "id": 0}, {"location": "Yale University", "city": "New Haven, CT", "arrival": "2026-06-09", "pallets": 5, "mode": "Freight", "status": "Order in process", "type": "Freight", "trips": [{"tripId": "S3R_YALU_MED_1266", "program": "MED", "arrival": "2026-06-09", "comments": "Early Arrival, not day specific"}, {"tripId": "S2R_YALU_MED_1266", "program": "MED", "arrival": "2026-06-09", "comments": "Early Arrival, not day specific"}, {"tripId": "S2R_YALU_BUS_1266", "program": "BUS", "arrival": "2026-06-09", "comments": "Early Arrival, not day specific"}, {"tripId": "S1R_YALU_MED_1266", "program": "MED", "arrival": "2026-06-09", "comments": "Early Arrival, not day specific"}, {"tripId": "S1R_YALU_ENG_1266", "program": "ENG", "arrival": "2026-06-09", "comments": "Early Arrival, not day specific"}, {"tripId": "S1R_YALU_BUS_1266", "program": "BUS", "arrival": "2026-06-09", "comments": "Early Arrival, not day specific"}], "id": 1}, {"location": "Loyola University", "city": "Chicago, IL", "arrival": "2026-06-16", "pallets": 8, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S1R_LOYLU_PAT_1266", "program": "PAT", "arrival": "2026-06-18", "comments": "Can arrive a day or 2 early"}, {"tripId": "S1R_LOYLU_EXS_1266", "program": "EXS", "arrival": "2026-06-18", "comments": "Can arrive a day or 2 early"}], "id": 2}, {"location": "Texas A&M Victoria", "city": "Victoria, TX", "arrival": "2026-06-16", "pallets": 1, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S2R_TXZOO_VEH_1266", "program": "VEH", "arrival": "2026-06-18", "comments": "Can arrive early, near to Rice"}, {"tripId": "S1R_TXZOO_VEM_1266", "program": "VEM", "arrival": "2026-06-18", "comments": "Can arrive early, near to Rice"}, {"tripId": "S1R_TXZOO_VEH_1266", "program": "VEH", "arrival": "2026-06-18", "comments": "Can arrive early, near to Rice"}], "id": 3}, {"location": "Texas State", "city": "San Marcos, TX", "arrival": "2026-06-18", "pallets": 6, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S1R_TXST_PAT_1266", "program": "PAT", "arrival": "2026-06-18", "comments": "UNK"}], "id": 4}, {"location": "Rice University", "city": "Houston, TX", "arrival": "2026-06-18", "pallets": 14, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S5R_RICEU_RET_1266", "program": "RET", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S4R_RICEU_RET_1266", "program": "RET", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S3R_RICEU_RET_1266", "program": "RET", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S2R_RICEU_AER_1266", "program": "AER", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S1R_RICEU_RET_1266", "program": "RET", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S1R_RICEU_PAT_1266", "program": "PAT", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S1R_RICEU_MED_1266", "program": "MED", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S1R_RICEU_EXS_1266", "program": "EXS", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S1R_RICEU_AER_1266", "program": "AER", "arrival": "2026-06-18", "comments": "Must arrive on date"}], "id": 5}, {"location": "Bentley University", "city": "Boston, MA", "arrival": "2026-06-18", "pallets": 11, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S4R_BENTU_JNL_1266", "program": "JNL", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S3R_BENTU_JNL_1266", "program": "JNL", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S2R_BENTU_JNL_1266", "program": "JNL", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S1R_BENTU_PAT_1266", "program": "PAT", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S1R_BENTU_JNL_1266", "program": "JNL", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S1R_BENTU_EXS_1266", "program": "EXS", "arrival": "2026-06-18", "comments": "Must arrive on date"}], "id": 6}, {"location": "UMD", "city": "College Park, MD", "arrival": "2026-06-19", "pallets": 16, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S9R_UMD_JNL_1266", "program": "JNL", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S8R_UMD_JNL_1266", "program": "JNL", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S7R_UMD_JNL_1266", "program": "JNL", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S6R_UMD_JNL_1266", "program": "JNL", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S5R_UMD_JNL_1266", "program": "JNL", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S4R_UMD_JNL_1266", "program": "JNL", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S3R_UMD_JNL_1266", "program": "JNL", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S2R_UMD_JNL_1266", "program": "JNL", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S1R_UMD_PAT_1266", "program": "PAT", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S1R_UMD_JNL_1266", "program": "JNL", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S1R_UMD_EXS_1266", "program": "EXS", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S12R_UMD_JNL_1266", "program": "JNL", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S11R_UMD_JNL_1266", "program": "JNL", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S10R_UMD_JNL_1266", "program": "JNL", "arrival": "2026-06-18", "comments": "Must arrive on date"}], "id": 7}, {"location": "Villanova University", "city": "Villanova, PA", "arrival": "2026-06-18", "pallets": 8, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S1R_VILLU_PAT_1266", "program": "PAT", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S1R_VILLU_EXS_1266", "program": "EXS", "arrival": "2026-06-18", "comments": "Must arrive on date"}], "id": 8}, {"location": "University of Miami", "city": "Miami, FL", "arrival": "2026-06-18", "pallets": 8, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S1R_UMIAMI_PAT_1266", "program": "PAT", "arrival": "2026-06-18", "comments": "Must arrive on date"}, {"tripId": "S1R_UMIAMI_EXS_1266", "program": "EXS", "arrival": "2026-06-18", "comments": "Must Arrive on Date"}], "id": 9}, {"location": "Emory University", "city": "Atlanta, GA", "arrival": "2026-06-22", "pallets": 14, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S2R_EMRYU_MED_1266", "program": "MED", "arrival": "2026-06-22", "comments": "Can be a day early"}, {"tripId": "S2R_EMRYU_JNL_1266", "program": "JNL", "arrival": "2026-06-22", "comments": "Can be a day early"}, {"tripId": "S1R_EMRYU_PAT_1266", "program": "PAT", "arrival": "2026-06-22", "comments": "Can be a day early"}, {"tripId": "S1R_EMRYU_MED_1266", "program": "MED", "arrival": "2026-06-22", "comments": "Can be a day early"}, {"tripId": "S1R_EMRYU_LAW_1266", "program": "LAW", "arrival": "2026-06-22", "comments": "Can be a day early"}, {"tripId": "S1R_EMRYU_JRM_1266", "program": "JRM", "arrival": "2026-06-22", "comments": "Can be a day early"}, {"tripId": "S1R_EMRYU_JNL_1266", "program": "JNL", "arrival": "2026-06-22", "comments": "Can be a day early"}, {"tripId": "S1R_EMRYU_EXS_1266", "program": "EXS", "arrival": "2026-06-22", "comments": "Can be a day early"}], "id": 10}, {"location": "Georgetown University", "city": "Washington, DC", "arrival": "2026-06-22", "pallets": 8, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S2R_GUDC_NS_1266", "program": "NS", "arrival": "2026-06-22", "comments": "Must arrive on date"}, {"tripId": "S2R_GUDC_LAW_1266", "program": "LAW", "arrival": "2026-06-22", "comments": "Must arrive on date"}, {"tripId": "S2R_GUDC_AMD_1266", "program": "AMD", "arrival": "2026-06-22", "comments": "Must arrive on date"}, {"tripId": "S1R_GUDC_NS_1266", "program": "NS", "arrival": "2026-06-22", "comments": "Must arrive on date"}, {"tripId": "S1R_GUDC_LAW_1266", "program": "LAW", "arrival": "2026-06-22", "comments": "Must arrive on date"}, {"tripId": "S1R_GUDC_AMD_1266", "program": "AMD", "arrival": "2026-06-22", "comments": "Must arrive on date"}], "id": 11}, {"location": "Stanford University", "city": "Palo Alto, CA", "arrival": "2026-06-22", "pallets": 3, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S3R_STANU_ALW_1266", "program": "ALW", "arrival": "2026-06-22", "comments": "Must arrive on date"}, {"tripId": "S2R_STANU_ALW_1266", "program": "ALW", "arrival": "2026-06-22", "comments": "Must arrive on date"}, {"tripId": "S1R_STANU_ALW_1266", "program": "ALW", "arrival": "2026-06-22", "comments": "Must arrive on date"}], "id": 12}, {"location": "UCLA", "city": "Los Angeles, CA", "arrival": "2026-06-23", "pallets": 6, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S2R_UCLA_MED_1266", "program": "MED", "arrival": "2026-06-22", "comments": "Must arrive on date"}, {"tripId": "S1R_UCLA_MED_1266", "program": "MED", "arrival": "2026-06-22", "comments": "Must arrive on date"}, {"tripId": "S1R_UCLA_ENG_1266", "program": "ENG", "arrival": "2026-06-22", "comments": "Must arrive on date"}], "id": 13}, {"location": "University of California, Berkeley", "city": "Berkeley, CA", "arrival": "2026-06-22", "pallets": 14, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S2R_UCBERK_JNL_1266", "program": "JNL", "arrival": "2026-06-22", "comments": "Must arrive on date"}, {"tripId": "S1R_UCBERK_PAT_1266", "program": "PAT", "arrival": "2026-06-22", "comments": "Must arrive on date"}, {"tripId": "S1R_UCBERK_MED_1266", "program": "MED", "arrival": "2026-06-22", "comments": "Must arrive on date"}, {"tripId": "S1R_UCBERK_JRM_1266", "program": "JRM", "arrival": "2026-06-22", "comments": "Must arrive on date"}, {"tripId": "S1R_UCBERK_JNL_1266", "program": "JNL", "arrival": "2026-06-22", "comments": "Must arrive on date"}, {"tripId": "S1R_UCBERK_EXS_1266", "program": "EXS", "arrival": "2026-06-22", "comments": "Must arrive on date"}, {"tripId": "S1R_UCBERK_ENG_1266", "program": "ENG", "arrival": "2026-06-22", "comments": "Must arrive on date"}, {"tripId": "S1R_UCBERK_BUS_1266", "program": "BUS", "arrival": "2026-06-22", "comments": "Must arrive on date"}], "id": 14}, {"location": "University of Michigan", "city": "Ann Arbor, MI", "arrival": "2026-06-23", "pallets": 4, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S1R_UMICH_MED_1266", "program": "MED", "arrival": "2026-06-22", "comments": "Must arrive on date"}, {"tripId": "S1R_UMICH_ENG_1266", "program": "ENG", "arrival": "2026-06-22", "comments": "Must arrive on date"}], "id": 15}, {"location": "University of California, San Diego", "city": "San Diego, CA", "arrival": "2026-06-25", "pallets": 8, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S1R_UCSD_PAT_1266", "program": "PAT", "arrival": "2026-06-25", "comments": "Must arrive on date"}, {"tripId": "S1R_UCSD_EXS_1266", "program": "EXS", "arrival": "2026-06-25", "comments": "Must arrive on date"}], "id": 16}, {"location": "University of Dallas", "city": "Dallas, TX", "arrival": "2026-06-26", "pallets": 8, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S1R_UDALLAS_PAT_1266", "program": "PAT", "arrival": "2026-06-26", "comments": "Must arrive on date"}, {"tripId": "S1R_UDALLAS_EXS_1266", "program": "EXS", "arrival": "2026-06-26", "comments": "Must arrive on date"}], "id": 17}, {"location": "Georgia Tech", "city": "Atlanta, GA", "arrival": "2026-07-02", "pallets": null, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S2R_GATECH_ENG_1266", "program": "ENG", "arrival": "2026-07-02", "comments": "Must arrive on date"}, {"tripId": "S1R_GATECH_ENG_1266", "program": "ENG", "arrival": "2026-07-02", "comments": "Must arrive on date"}, {"tripId": "S1R_GATECH_BUS_1266", "program": "BUS", "arrival": "2026-07-02", "comments": "Must arrive on date"}], "id": 18}, {"location": "Seattle University", "city": "Seattle, WA", "arrival": "2026-07-02", "pallets": 8, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S1R_SUWA_PAT_1266", "program": "PAT", "arrival": "2026-07-02", "comments": "Must arrive on date"}, {"tripId": "S1R_SUWA_EXS_1266", "program": "EXS", "arrival": "2026-07-02", "comments": "Must arrive on date"}], "id": 19}, {"location": "Vanderbilt University", "city": "Nashville, TN", "arrival": "2026-07-02", "pallets": 9, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S2R_VANDY_PAT_1266", "program": "PAT", "arrival": "2026-07-02", "comments": "Must arrive on date"}, {"tripId": "S1R_VANDY_PAT_1266", "program": "PAT", "arrival": "2026-07-02", "comments": "Must arrive on date"}, {"tripId": "S1R_VANDY_EXS_1266", "program": "EXS", "arrival": "2026-07-02", "comments": "Must arrive on date"}], "id": 20}, {"location": "Ohio State University", "city": "Columbus, OH", "arrival": "2026-07-02", "pallets": 8, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S1R_OSUOH_PAT_1266", "program": "PAT", "arrival": "2026-07-02", "comments": "UNK"}, {"tripId": "S1R_OSUOH_EXS_1266", "program": "EXS", "arrival": "2026-07-02", "comments": "UNK"}], "id": 21}, {"location": "Campbell University", "city": "Bouis Creek, NC", "arrival": "2026-07-10", "pallets": 8, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S1R_CAMU_PAT_1266", "program": "PAT", "arrival": "2026-07-10", "comments": "Must arrive on date"}, {"tripId": "S1R_CAMU_EXS_1266", "program": "EXS", "arrival": "2026-07-10", "comments": "Must arrive on date"}], "id": 22}, {"location": "Occidental College", "city": "Los Angeles, CA", "arrival": "2026-07-10", "pallets": 3, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S1R_OCCDLU_PAT_1266", "program": "PAT", "arrival": "2026-07-10", "comments": "Must arrive on date"}, {"tripId": "S1R_OCCDLU_EXS_1266", "program": "EXS", "arrival": "2026-07-10", "comments": "Must arrive on date"}], "id": 23}, {"location": "St. John's University", "city": "New York, NY", "arrival": "2026-07-10", "pallets": 8, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S1R_STJOU_PAT_1266", "program": "PAT", "arrival": "2026-07-10", "comments": "Must arrive on date"}, {"tripId": "S1R_STJOU_EXS_1266", "program": "EXS", "arrival": "2026-07-10", "comments": "Must arrive on date"}], "id": 24}, {"location": "Washington University, St. Louis", "city": "St Louis, MO", "arrival": "2026-07-10", "pallets": 6, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S1R_WUSTL_PAT_1266", "program": "PAT", "arrival": "2026-07-10", "comments": "Must arrive on date"}], "id": 25}, {"location": "Northern Arizona University", "city": "Flagstaff, AZ", "arrival": "2026-07-08", "pallets": 3, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S1R_NAU_PAT_1266", "program": "PAT", "arrival": "2026-07-10", "comments": "UNK"}], "id": 26}, {"location": "University of Denver", "city": "Denver, CO", "arrival": "2026-07-14", "pallets": 8, "mode": "Freight", "status": "", "type": "Freight", "trips": [{"tripId": "S1R_UDENV_PAT_1266", "program": "PAT", "arrival": "2026-07-18", "comments": "Must arrive on date"}, {"tripId": "S1R_UDENV_EXS_1266", "program": "EXS", "arrival": "2026-07-18", "comments": "Must arrive on date"}], "id": 27}, {"location": "Hotel Polaris", "city": "Colorado Springs, CO", "arrival": null, "pallets": null, "mode": "Parcel", "status": "Needs attention", "type": "Parcel", "trips": [{"tripId": "S1R_HPCS_ARV_1263", "program": "ARV", "arrival": "2026-03-23", "comments": "Parcel"}], "id": 28}, {"location": "Honors Performance Series", "city": "London, England", "arrival": null, "pallets": null, "mode": "Domestic Parcel", "status": "", "type": "Parcel", "trips": [], "id": 29}, {"location": "Rescue Center Costa Rica", "city": "Rescue Center Costa Rica", "arrival": "6/3/2026 @ American", "pallets": null, "mode": "Domestic Parcel", "status": "", "type": "Parcel", "trips": [{"tripId": "S1R_RCCR_VEH_1266", "program": "VEH", "arrival": "2026-06-18", "comments": "Parcel"}, {"tripId": "S2R_RCCR_VEH_1266", "program": "VEH", "arrival": "2026-06-18", "comments": "Parcel"}], "id": 30}, {"location": "University of Colorado, Colorado Springs", "city": "Colorado Springs, CO", "arrival": null, "pallets": null, "mode": "Parcel?", "status": "", "type": "Parcel", "trips": [{"tripId": "S2R_UCCS_AVI_1266", "program": "AVI", "arrival": "2026-06-23", "comments": "Parcel?"}, {"tripId": "S1R_UCCS_AVI_1266", "program": "AVI", "arrival": "2026-06-23", "comments": "Parcel?"}], "id": 31}, {"location": "Gud Ark Animal Sactuary/La Quinta Inn Maricopa", "city": "Maricopa, AZ", "arrival": "6/22/2026 to SRL", "pallets": null, "mode": "Parcel", "status": "", "type": "Parcel", "trips": [{"tripId": "S1R_HLAAZ_VEH_1266", "program": "VEH", "arrival": "2026-06-26", "comments": "Parcel"}], "id": 32}, {"location": "Double Tree Poughkeepsie", "city": "Poughkeepsie, NY", "arrival": null, "pallets": null, "mode": "Parcel", "status": "", "type": "Parcel", "trips": [{"tripId": "S1R_CIHP_CAC_1266", "program": "CAC", "arrival": "2026-07-10", "comments": "Parcel"}], "id": 33}, {"location": "Embassy Suites Palm Beach", "city": "West Palm Beach, FL", "arrival": "7/13/2026 to SR Lead", "pallets": null, "mode": "Parcel", "status": "", "type": "Parcel", "trips": [{"tripId": "S1R_REEF_VEH_1266", "program": "VEH", "arrival": "2026-07-15", "comments": "Parcel"}, {"tripId": "S2R_REEF_VEH_1266", "program": "VEH", "arrival": "2026-07-15", "comments": "Parcel"}], "id": 34}, {"location": "Honors Performance Series", "city": "New York, NY", "arrival": null, "pallets": null, "mode": "Parcel", "status": "", "type": "Parcel", "trips": [{"tripId": "S1R_CHNY_HPM_1266", "program": "HPM", "arrival": "2026-07-17", "comments": "Parcel"}], "id": 35}, {"location": "Walkabout Wildlife Park", "city": "Sydney, AUS", "arrival": "7/13/26 to Jean's Palace", "pallets": null, "mode": "Domestic Parcel", "status": "", "type": "Parcel", "trips": [{"tripId": "S1R_WWP_VEH_1266", "program": "VEH", "arrival": "2026-07-23", "comments": "Parcel"}], "id": 36}, {"location": "Pine Bush Equine Services", "city": "Pine Bush, NY", "arrival": "To Equine Center, 6/22/26", "pallets": null, "mode": "Parcel?", "status": "", "type": "Parcel", "trips": [{"tripId": "S1R_HLANY_VEH_1266", "program": "VEH", "arrival": "2026-06-26", "comments": "Parcel?"}, {"tripId": "S2R_HLANY_VEH_1266", "program": "VEH", "arrival": "2026-06-26", "comments": "Parcel?"}, {"tripId": "S1R_HLANY_VEM_1266", "program": "VEM", "arrival": "2026-06-26", "comments": "Parcel?"}], "id": 37}, {"location": "Stonehill College", "city": "Attleboro, MA", "arrival": "2026-06-29", "pallets": null, "mode": "Parcel?", "status": "", "type": "Parcel", "trips": [{"tripId": "S1R_MAZOO_VEH_1266", "program": "VEH", "arrival": "2026-07-02", "comments": "Parcel?"}, {"tripId": "S2R_MAZOO_VEH_1266", "program": "VEH", "arrival": "2026-07-02", "comments": "Parcel?"}, {"tripId": "S1R_MAZOO_VEM_1266", "program": "VEM", "arrival": "2026-07-02", "comments": "Parcel?"}], "id": 38}];
 const API = "/api/data";
-const STATUSES = ["Order in process","Ready for shipment","Shipped","Needs attention","Not started"];
-const SBADGE = {"Order in process":"b-amber","Ready for shipment":"b-rdy","Shipped":"b-green","Needs attention":"b-red","Not started":"b-gray"};
+const STATUSES = ["Order in process","Ready for shipment","Shipped","Delivered","Needs attention","Not started"];
+const SBADGE = {"Order in process":"b-amber","Ready for shipment":"b-rdy","Shipped":"b-green","Delivered":"b-teal","Needs attention":"b-red","Not started":"b-gray"};
+// Preview mode: when opened outside a real web server (e.g. the in-app preview),
+// there is no /api/data, so fall back to this-browser storage so the layout is fully clickable.
+const IS_PREVIEW = !/^https?:$/.test(location.protocol) || /(^$|localhost|127\.0\.0\.1)/.test(location.hostname);
+let LOCAL = IS_PREVIEW;
+const LS_KEY = "ws1266_overrides_local";
 let store = {};
-let pending = 0;       // in-flight/debounced single saves
-let unsynced = false;  // true if a local edit hasn't been confirmed saved
+let pending = 0, unsynced = false;
 const $=id=>document.getElementById(id);
 const timers={};
+
+function lsLoad(){ try{return JSON.parse(localStorage.getItem(LS_KEY)||"{}");}catch(e){return {};} }
+function lsSave(){ try{localStorage.setItem(LS_KEY, JSON.stringify(store));}catch(e){} }
 
 function ov(v){ return store[v.id]||{}; }
 function curContact(v){ const o=ov(v); return o.contact!==undefined? o.contact : ""; }
 function curStatus(v){ const o=ov(v); return o.status!==undefined? o.status : (v.status||"Not started"); }
-function curTrack(v,tid){ const o=ov(v); return (o.tracking&&o.tracking[tid]!==undefined)? o.tracking[tid] : ""; }
-function curNote(v,tid){ const o=ov(v); return (o.notes&&o.notes[tid]!==undefined)? o.notes[tid] : ""; }
+function mget(v,map,key,base){ const o=ov(v); return (o[map]&&o[map][key]!==undefined)? o[map][key] : (base!==undefined?base:""); }
+function curTrack(v,k){ return mget(v,'tracking',k,""); }
+function curNote(v,k){ return mget(v,'notes',k,""); }
+function curInhands(v,k,base){ return mget(v,'inhands',k,base); }
+function curDelivered(v,k){ return mget(v,'delivered',k,""); }
+function shipmentsOf(v){
+  const o=ov(v);
+  const ex=v.trips.map(t=>({key:t.tripId,tripId:t.tripId,program:t.program,comments:t.comments,baseInhands:t.arrival||"",added:false}));
+  const ad=(o.added||[]).map(s=>({key:s.key,tripId:s.tripId||"",program:s.program||"",comments:s.comments||"",baseInhands:"",added:true}));
+  return ex.concat(ad);
+}
 function typing(){ const e=document.activeElement; return e&&(e.tagName==="INPUT"||e.tagName==="SELECT"); }
-
 function setConn(state,txt){ const c=$("conn"); c.className="conn "+state; $("connt").textContent=txt; }
 function markDirty(on){ unsynced=on; $("saveall").classList.toggle("dirty",on); }
 
 async function loadStore(force){
+  if(LOCAL){ if(force||(!unsynced&&pending===0&&!typing())) store=lsLoad(); setConn("saving","Preview mode - saves to this browser only"); return true; }
   try{
     const r=await fetch(API,{cache:"no-store"});
     const j=await r.json().catch(()=>null);
     if(!r.ok) throw new Error((j&&j.error)||("HTTP "+r.status));
-    // Never clobber unsaved local edits unless explicitly forced and clean.
-    if(force || (!unsynced && pending===0 && !typing())){ store=j.overrides||{}; }
-    setConn("ok","Live - saved");
-    return true;
+    if(force||(!unsynced&&pending===0&&!typing())) store=j.overrides||{};
+    setConn("ok","Live - saved"); return true;
   }catch(e){ setConn("err","Connection error: "+e.message); return false; }
 }
 function localApply(id,field,value,tid){
   store[id]=store[id]||{};
-  if(field==="tracking"||field==="notes"){ store[id][field]=store[id][field]||{}; store[id][field][tid]=value; }
+  if(["tracking","notes","inhands","delivered"].includes(field)){ store[id][field]=store[id][field]||{}; store[id][field][tid]=value; }
   else { store[id][field]=value; }
 }
 async function push(body){
+  if(LOCAL){ lsSave(); markDirty(false); setConn("saving","Preview saved (this browser only)"); return; }
   pending++; markDirty(true); setConn("saving","Saving...");
   try{
     const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
     const j=await r.json().catch(()=>null);
     if(!r.ok) throw new Error((j&&j.error)||("HTTP "+r.status));
-    pending=Math.max(0,pending-1);
-    if(pending===0){ markDirty(false); setConn("ok","Saved"); }
-  }catch(e){ pending=Math.max(0,pending-1); setConn("err","Not saved: "+e.message); /* keep unsynced=true */ }
+    pending=Math.max(0,pending-1); if(pending===0){ markDirty(false); setConn("ok","Saved"); }
+  }catch(e){ pending=Math.max(0,pending-1); setConn("err","Not saved: "+e.message); }
 }
 function edit(id,field,value,tid){
   localApply(id,field,value,tid); markDirty(true);
-  const key=id+"|"+field+"|"+(tid||"");
-  clearTimeout(timers[key]);
+  const key=id+"|"+field+"|"+(tid||""); clearTimeout(timers[key]);
   timers[key]=setTimeout(()=>push({id,field,value,tripId:tid}), 500);
 }
 function editNow(id,field,value,tid){ localApply(id,field,value,tid); push({id,field,value,tripId:tid}); }
-
+function editAdded(id,key,prop,val){
+  store[id]=store[id]||{}; store[id].added=store[id].added||[];
+  const it=store[id].added.find(s=>s.key===key); if(it) it[prop]=val;
+  markDirty(true);
+  const k=id+"|af|"+key+"|"+prop; clearTimeout(timers[k]);
+  timers[k]=setTimeout(()=>push({id,field:"addedField",value:{key,prop,val}}), 500);
+}
+function addShipment(id){
+  const key="ADD-"+id+"-"+Date.now()+"-"+Math.floor(Math.random()*1000);
+  store[id]=store[id]||{}; store[id].added=store[id].added||[];
+  store[id].added.push({key,tripId:"",program:"",comments:""});
+  push({id,field:"addShipment",value:{key,tripId:"",program:"",comments:""}});
+  render(); updateCards();
+}
+function removeShipment(id,key){
+  if(!confirm("Remove this added shipment?")) return;
+  if(store[id]&&store[id].added) store[id].added=store[id].added.filter(s=>s.key!==key);
+  push({id,field:"removeShipment",value:key});
+  render(); updateCards();
+}
 async function saveAll(){
+  if(LOCAL){ lsSave(); markDirty(false); setConn("saving","Preview saved (this browser only)"); alert("Preview mode: saved to this browser only. On the live Netlify site this button saves to the shared database for everyone."); return; }
   setConn("saving","Saving all changes...");
   try{
     const r=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({overrides:store})});
     const j=await r.json().catch(()=>null);
     if(!r.ok) throw new Error((j&&j.error)||("HTTP "+r.status));
     if(j&&j.overrides) store=j.overrides;
-    pending=0; markDirty(false); setConn("ok","All changes saved");
-    render(); updateCards();
+    pending=0; markDirty(false); setConn("ok","All changes saved"); render(); updateCards();
     alert("All changes saved to the shared database. Everyone with the link will now see them.");
-  }catch(e){
-    setConn("err","Save failed: "+e.message);
-    alert("Could not save: "+e.message+"\n\nIf this mentions a 404, the save function isn't deployed yet. If it mentions Blobs, the database needs enabling. Send Claude this exact message.");
-  }
+  }catch(e){ setConn("err","Save failed: "+e.message); alert("Could not save: "+e.message+"\n\nIf this mentions a 404, the save function isn't deployed yet. If it mentions Blobs, the database needs enabling. Send Claude this exact message."); }
 }
 
 let sortK="arrival", sortDir=1;
 function statusSelectOptions(){ const sel=$("fstatus"); STATUSES.forEach(s=>{const o=document.createElement("option");o.value=s;o.textContent=s;sel.appendChild(o);}); }
 function rows(){
   const q=$("q").value.trim().toLowerCase(), ft=$("ftype").value, fs=$("fstatus").value, fm=$("fmiss").checked;
-  let list=RAW.map(v=>({v,contact:curContact(v),status:curStatus(v),nprog:v.trips.length}));
+  let list=RAW.map(v=>({v,contact:curContact(v),status:curStatus(v),nprog:shipmentsOf(v).length}));
   list=list.filter(r=>{
     if(ft&&r.v.type!==ft)return false; if(fs&&r.status!==fs)return false; if(fm&&r.contact.trim())return false;
-    if(q){ const hay=(r.v.location+" "+r.v.city+" "+r.contact+" "+r.v.trips.map(t=>t.tripId+" "+(t.program||"")).join(" ")).toLowerCase(); if(!hay.includes(q))return false; }
+    if(q){ const hay=(r.v.location+" "+r.v.city+" "+r.contact+" "+shipmentsOf(r.v).map(s=>s.tripId+" "+(s.program||"")).join(" ")).toLowerCase(); if(!hay.includes(q))return false; }
     return true;
   });
   list.sort((a,b)=>{ let x,y;
@@ -190,43 +226,65 @@ function render(){
   const list=rows(); const tb=$("tbody"); tb.innerHTML="";
   $("nores").style.display=list.length?"none":"block";
   list.forEach(r=>{
-    const v=r.v, miss=!r.contact.trim();
+    const v=r.v, miss=!r.contact.trim(); const ships=shipmentsOf(v);
     const tr=document.createElement("tr"); tr.className="vrow";
     const open=openIds.includes(String(v.id));
     tr.innerHTML='<td>'+statusSel(v,r.status)+'</td>'+
-      '<td><div class="loc">'+esc(v.location)+'</div><span class="expander" data-x="'+v.id+'">'+(open?'&#9662; ':'&#9656; ')+v.trips.length+' program'+(v.trips.length===1?'':'s')+'</span></td>'+
+      '<td><div class="loc">'+esc(v.location)+'</div><span class="expander" data-x="'+v.id+'">'+(open?'&#9662; ':'&#9656; ')+ships.length+' shipment'+(ships.length===1?'':'s')+'</span></td>'+
       '<td class="muted">'+esc(v.city)+'</td>'+
       '<td>'+esc(v.type)+'<div class="muted">'+esc(v.mode||"")+'</div></td>'+
-      '<td>'+esc(v.arrival||"—")+'</td>'+'<td>'+(v.pallets!=null?v.pallets:'—')+'</td>'+'<td>'+v.trips.length+'</td>'+
+      '<td>'+esc(v.arrival||"—")+'</td>'+'<td>'+(v.pallets!=null?v.pallets:'—')+'</td>'+'<td>'+ships.length+'</td>'+
       '<td class="contact-cell '+(miss?'missing':'')+'"><input class="contact-in '+(miss?'missing':'')+'" data-c="'+v.id+'" value="'+esc(r.contact)+'" placeholder="Add on-site contact..."></td>';
     tb.appendChild(tr);
     const dt=document.createElement("tr"); dt.className="detail"; dt.style.display=open?"table-row":"none"; dt.dataset.det=v.id;
-    let inner='<td colspan="8"><table><thead><tr><th>Trip ID</th><th>Program</th><th>Arrival</th><th>Comments</th><th>Tracking #</th><th>Notes</th></tr></thead><tbody>';
-    if(v.trips.length===0) inner+='<tr><td colspan="6" class="muted">No trip IDs listed for this venue yet.</td></tr>';
-    v.trips.forEach(t=>{ const tk=curTrack(v,t.tripId), nt=curNote(v,t.tripId);
-      inner+='<tr><td class="tid">'+esc(t.tripId)+'</td><td>'+esc(t.program||"—")+'</td><td>'+esc(t.arrival||"—")+'</td><td class="muted">'+esc(t.comments||"")+'</td>'+
-        '<td><input class="track-in '+(tk.trim()?'has':'')+'" data-tk="'+v.id+'" data-tid="'+esc(t.tripId)+'" value="'+esc(tk)+'" placeholder="Add tracking #..."></td>'+
-        '<td><input class="note-in '+(nt.trim()?'has':'')+'" data-nt="'+v.id+'" data-tid="'+esc(t.tripId)+'" value="'+esc(nt)+'" placeholder="Add note..."></td></tr>'; });
+    let inner='<td colspan="8"><table><thead><tr><th>Trip ID</th><th>Program</th><th>In-Hands Date</th><th>Delivered Date</th><th>Comments</th><th>Tracking #</th><th>Notes</th></tr></thead><tbody>';
+    ships.forEach(sh=>{ const k=sh.key;
+      const ih=curInhands(v,k,sh.baseInhands), dv=curDelivered(v,k), tk=curTrack(v,k), nt=curNote(v,k);
+      const tidCell = sh.added
+        ? '<input class="add-in tid-in" data-af="'+v.id+'|'+k+'|tripId" value="'+esc(sh.tripId)+'" placeholder="Trip ID"><span class="newtag">NEW</span> <button class="rm" data-rm="'+v.id+'|'+k+'" title="Remove shipment">&times;</button>'
+        : '<span class="tid">'+esc(sh.tripId)+'</span>';
+      const progCell = sh.added
+        ? '<input class="add-in" data-af="'+v.id+'|'+k+'|program" value="'+esc(sh.program)+'" placeholder="Program">'
+        : esc(sh.program||"—");
+      const cmtCell = sh.added
+        ? '<input class="add-in" data-af="'+v.id+'|'+k+'|comments" value="'+esc(sh.comments)+'" placeholder="Comments">'
+        : '<span class="muted">'+esc(sh.comments||"")+'</span>';
+      inner+='<tr><td>'+tidCell+'</td><td>'+progCell+'</td>'+
+        '<td><input type="date" class="date-in" data-dt="'+v.id+'|'+k+'|inhands" value="'+esc(ih)+'"></td>'+
+        '<td><input type="date" class="date-in'+(dv?' has':'')+'" data-dt="'+v.id+'|'+k+'|delivered" value="'+esc(dv)+'"></td>'+
+        '<td>'+cmtCell+'</td>'+
+        '<td><input class="track-in'+(tk.trim()?' has':'')+'" data-tkk="'+v.id+'|'+k+'" value="'+esc(tk)+'" placeholder="Add tracking #..."></td>'+
+        '<td><input class="note-in'+(nt.trim()?' has':'')+'" data-ntk="'+v.id+'|'+k+'" value="'+esc(nt)+'" placeholder="Add note..."></td></tr>';
+    });
+    inner+='<tr><td colspan="7"><button class="btn ghost addship" data-add="'+v.id+'">+ Add shipment</button></td></tr>';
     inner+='</tbody></table></td>'; dt.innerHTML=inner; tb.appendChild(dt);
   });
   tb.querySelectorAll('input[data-c]').forEach(inp=>{ inp.addEventListener('input',()=>{edit(+inp.dataset.c,'contact',inp.value);}); inp.addEventListener('blur',()=>{render();updateCards();}); });
   tb.querySelectorAll('select[data-s]').forEach(sel=>{ sel.addEventListener('change',()=>{editNow(+sel.dataset.s,'status',sel.value);render();updateCards();}); });
-  tb.querySelectorAll('input[data-tk]').forEach(inp=>{ inp.addEventListener('input',()=>{edit(+inp.dataset.tk,'tracking',inp.value,inp.dataset.tid);inp.classList.toggle('has',!!inp.value.trim());}); });
-  tb.querySelectorAll('input[data-nt]').forEach(inp=>{ inp.addEventListener('input',()=>{edit(+inp.dataset.nt,'notes',inp.value,inp.dataset.tid);inp.classList.toggle('has',!!inp.value.trim());}); });
+  tb.querySelectorAll('input[data-dt]').forEach(inp=>{ inp.addEventListener('change',()=>{const p=inp.dataset.dt.split('|'); edit(+p[0],p[2],inp.value,p[1]); if(p[2]==='delivered') inp.classList.toggle('has',!!inp.value);}); });
+  tb.querySelectorAll('input[data-tkk]').forEach(inp=>{ inp.addEventListener('input',()=>{const p=inp.dataset.tkk.split('|'); edit(+p[0],'tracking',inp.value,p[1]); inp.classList.toggle('has',!!inp.value.trim());}); });
+  tb.querySelectorAll('input[data-ntk]').forEach(inp=>{ inp.addEventListener('input',()=>{const p=inp.dataset.ntk.split('|'); edit(+p[0],'notes',inp.value,p[1]); inp.classList.toggle('has',!!inp.value.trim());}); });
+  tb.querySelectorAll('input[data-af]').forEach(inp=>{ inp.addEventListener('input',()=>{const p=inp.dataset.af.split('|'); editAdded(+p[0],p[1],p[2],inp.value);}); });
+  tb.querySelectorAll('button[data-add]').forEach(b=>{ b.addEventListener('click',()=>addShipment(+b.dataset.add)); });
+  tb.querySelectorAll('button[data-rm]').forEach(b=>{ b.addEventListener('click',()=>{const p=b.dataset.rm.split('|'); removeShipment(+p[0],p[1]);}); });
   tb.querySelectorAll('.expander').forEach(x=>{ x.addEventListener('click',()=>{ const d=tb.querySelector('tr.detail[data-det="'+x.dataset.x+'"]'); const o=d.style.display!=="none"; d.style.display=o?"none":"table-row"; x.innerHTML=(o?'&#9656; ':'&#9662; ')+x.textContent.slice(2); }); });
 }
 function updateCards(){ const total=RAW.length, fr=RAW.filter(v=>v.type==="Freight").length, pc=RAW.filter(v=>v.type==="Parcel").length;
-  const prog=RAW.reduce((a,v)=>a+v.trips.length,0), miss=RAW.filter(v=>!curContact(v).trim()).length;
-  $("cards").innerHTML=card(total,"Venues")+card(fr+" / "+pc,"Freight / Parcel")+card(prog,"Program shipments")+cardAlert(miss,"Missing on-site contact"); }
+  const prog=RAW.reduce((a,v)=>a+shipmentsOf(v).length,0), miss=RAW.filter(v=>!curContact(v).trim()).length;
+  $("cards").innerHTML=card(total,"Venues")+card(fr+" / "+pc,"Freight / Parcel")+card(prog,"Shipments")+cardAlert(miss,"Missing on-site contact"); }
 function card(n,l){ return '<div class="card"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>'; }
 function cardAlert(n,l){ return '<div class="card '+(n>0?'alert':'')+'"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>'; }
 function buildLegend(){ $("legend").innerHTML="Status legend: "+STATUSES.map(badge).join(" "); }
-function exportCSV(){ const head=["Venue","City","Mode","Type","Arrival","Pallets","Status","On-Site Contact","Trip IDs","Tracking Numbers","Notes"]; const lines=[head.join(",")];
-  RAW.forEach(v=>{ const row=[v.location,v.city,v.mode||"",v.type,v.arrival||"",v.pallets!=null?v.pallets:"",curStatus(v),curContact(v),v.trips.map(t=>t.tripId).join("; "),
-    v.trips.filter(t=>curTrack(v,t.tripId).trim()).map(t=>t.tripId+"="+curTrack(v,t.tripId)).join("; "),
-    v.trips.filter(t=>curNote(v,t.tripId).trim()).map(t=>t.tripId+": "+curNote(v,t.tripId)).join(" | ")];
-    lines.push(row.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(",")); });
-  const blob=new Blob([lines.join("\n")],{type:"text/csv"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="WorldStrides_1266_Shipment_Tracker.csv"; a.click(); }
+function rowCSV(arr){ return arr.map(x=>'"'+String(x==null?"":x).replace(/"/g,'""')+'"').join(","); }
+function exportCSV(){
+  const head=["Venue","City","Mode","Type","Venue In-Hands","Pallets","Venue Status","On-Site Contact","Trip ID","Program","Shipment In-Hands","Delivered","Tracking #","Notes"];
+  const lines=[head.join(",")];
+  RAW.forEach(v=>{ const ships=shipmentsOf(v);
+    if(ships.length===0){ lines.push(rowCSV([v.location,v.city,v.mode||"",v.type,v.arrival||"",v.pallets!=null?v.pallets:"",curStatus(v),curContact(v),"","","","","",""])); }
+    ships.forEach(sh=>{ const k=sh.key; lines.push(rowCSV([v.location,v.city,v.mode||"",v.type,v.arrival||"",v.pallets!=null?v.pallets:"",curStatus(v),curContact(v),sh.tripId,sh.program||"",curInhands(v,k,sh.baseInhands),curDelivered(v,k),curTrack(v,k),curNote(v,k)])); });
+  });
+  const blob=new Blob([lines.join("\n")],{type:"text/csv"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="WorldStrides_1266_Shipment_Tracker.csv"; a.click();
+}
 
 document.addEventListener("DOMContentLoaded",async()=>{
   statusSelectOptions(); buildLegend();
@@ -235,13 +293,9 @@ document.addEventListener("DOMContentLoaded",async()=>{
   $("fstatus").addEventListener("change",render); $("fmiss").addEventListener("change",render);
   $("saveall").addEventListener("click",saveAll);
   $("export").addEventListener("click",exportCSV);
-  $("refresh").addEventListener("click",async()=>{
-    if(unsynced && !confirm("You have unsaved changes. Refreshing pulls the shared copy and may discard them. Continue?")) return;
-    if(await loadStore(true)){render();updateCards();}
-  });
+  $("refresh").addEventListener("click",async()=>{ if(unsynced && !LOCAL && !confirm("You have unsaved changes. Refreshing pulls the shared copy and may discard them. Continue?")) return; if(await loadStore(true)){render();updateCards();} });
   document.querySelectorAll("thead th[data-k]").forEach(th=>{ th.addEventListener("click",()=>{const k=th.dataset.k; if(sortK===k)sortDir*=-1; else{sortK=k;sortDir=1;} render();}); });
-  // Auto-refresh shared data, but only when it is safe (not typing, nothing pending/unsaved).
-  setInterval(async()=>{ if(typing()||pending>0||unsynced)return; if(await loadStore(false)){render();updateCards();} }, 15000);
+  setInterval(async()=>{ if(LOCAL||typing()||pending>0||unsynced)return; if(await loadStore(false)){render();updateCards();} }, 15000);
 });
 </script>
 </body>
